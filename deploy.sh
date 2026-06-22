@@ -1,35 +1,17 @@
 #!/bin/bash
-# Auto-deploy script for agentzyra.com
-# Run: bash deploy.sh
-
 set -e
 
-REPO_DIR="/root/agentzyra.com"
-OUT_DIR="$REPO_DIR/out"
-CADDYFILE="/etc/caddy/Caddyfile"
+cd /root/agentzyra.com
 
-echo "🚀 Deploying agentzyra.com..."
+# Pull latest changes
+git pull origin main
 
-cd "$REPO_DIR"
-
-# Pull latest
-echo "📦 Pulling latest..."
-git pull origin main 2>/dev/null || true
-
-# Install deps
-echo "📦 Installing dependencies..."
-npm install --silent
-
-# Build
-echo "🔨 Building..."
+# Install dependencies & build
+npm install --legacy-peer-deps
 npm run build
 
-# Deploy
-echo "📂 Copying to web root..."
-# Caddy serves directly from out/ so no copy needed
+# Copy to web server directory
+cp -r out/* /var/www/agentzyra.com/
+chown -R caddy:caddy /var/www/agentzyra.com
 
-# Restart Caddy
-echo "🔄 Reloading Caddy..."
-systemctl reload caddy 2>/dev/null || systemctl restart caddy
-
-echo "✅ Deploy complete! https://agentzyra.com"
+echo "✅ Deployed successfully!"
